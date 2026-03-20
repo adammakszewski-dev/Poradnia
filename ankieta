@@ -126,8 +126,8 @@ with st.form("email_form"):
     odbiorca_email = st.text_input("Twój adres e-mail (na który ma trafić raport)")
     
     # Dane SMTP (Do działania na serwerze musisz wpisać swoje dane z Gmaila)
-    nadawca_email = "TWOJ_EMAIL@gmail.com" 
-    nadawca_haslo = "TWOJE_HASLO_APLIKACJI"
+    nadawca_email = "lek.a.makszewski@gmail.com" 
+    nadawca_haslo = "Haslo123"
     
     submitted = st.form_submit_button("Wyślij raport")
     
