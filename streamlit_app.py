@@ -132,4 +132,74 @@ with tabs[3]:
         pds_points.append(opts.index(choice))
 
 # --- OBLICZENIA (W tle) ---
-s_phq = sum([opt_03[x] for x in phq
+s_phq = sum([opt_03[x] for x in phq_res])
+s_gad = sum([opt_03[x] for x in gad_res])
+s_asrs = sum([asrs_opt[x] for x in asrs_res])
+
+# Obliczanie AQ-10 z ukrytym kluczem odwróconym
+s_aq = 0
+for i, ans in enumerate(aq_res):
+    ans_idx = aq_opts.index(ans)
+    if i in [0, 4, 6, 7, 9]: # Punkty za "Zgadzam się"
+        if ans_idx in [0, 1]: s_aq += 1
+    else: # Punkty za "Nie zgadzam się" (Pytania: 2, 3, 4, 6, 9)
+        if ans_idx in [2, 3]: s_aq += 1
+
+s_pds = sum(pds_points)
+
+s_audit = 0
+for i, ans in enumerate(audit_res):
+    if i < 3: s_audit += aud_opt_freq.get(ans, aud_opt_amt.get(ans, 0))
+    elif i < 8: s_audit += aud_opt_freq.get(ans, 0)
+    else: s_audit += aud_opt_9_10.get(ans, 0)
+
+# --- RAPORT NA EKRANIE ---
+st.divider()
+st.header("📊 Wyniki zbiorcze")
+col_res1, col_res2 = st.columns(2)
+with col_res1:
+    st.write(f"**PHQ-9:** {s_phq}")
+    st.write(f"**GAD-7:** {s_gad}")
+    st.write(f"**ASRS:** {s_asrs}")
+with col_res2:
+    st.write(f"**AUDIT:** {s_audit}")
+    st.write(f"**AQ-10:** {s_aq}")
+    st.write(f"**Struktura Osobowości:** {s_pds} / 32")
+
+# --- FORMULARZ E-MAIL (Zabezpieczony format) ---
+st.divider()
+st.subheader("✉️ Wyślij raport")
+with st.form("email_form"):
+    pacjent = st.text_input("ID Pacjenta")
+    email_do = st.text_input("Adres e-mail odbiorcy")
+    
+    # TUTAJ WPISZ SWOJE DANE (Hasło aplikacji z Google)
+    M_USER = "TWOJ_EMAIL@gmail.com"
+    M_PASS = "TWOJE_HASLO_APLIKACJI"
+    
+    wyslij = st.form_submit_button("Wyślij")
+    if wyslij and pacjent and email_do:
+        try:
+            body = f"""Wyniki dla pacjenta: {pacjent}
+
+PHQ-9 (Depresja): {s_phq}
+GAD-7 (Lęk): {s_gad}
+ASRS (ADHD): {s_asrs}
+AQ-10 (Autyzm): {s_aq}
+AUDIT (Alkohol): {s_audit}
+Struktura Osobowości (PDS): {s_pds}/32"""
+
+            msg = MIMEMultipart()
+            msg['From'] = M_USER
+            msg['To'] = email_do
+            msg['Subject'] = f"Raport Diagnostyczny: {pacjent}"
+            msg.attach(MIMEText(body, 'plain'))
+            
+            with smtplib.SMTP('smtp.gmail.com', 587) as server:
+                server.starttls()
+                server.login(M_USER, M_PASS)
+                server.send_message(msg)
+            
+            st.success("Raport został wysłany pomyślnie!")
+        except Exception as e:
+            st.error(f"Wystąpił błąd podczas wysyłania: {e}")
