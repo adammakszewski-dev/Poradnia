@@ -7,7 +7,7 @@ from email.mime.multipart import MIMEMultipart
 st.set_page_config(page_title="Poradnia - Diagnostyka", layout="wide")
 
 st.title("🩺 Arkusz Badań Psychiatrycznych (ICD-11)")
-st.info("Wypełnij wszystkie sekcje. Na dole strony możesz wysłać raport na e-mail.")
+st.info("Wypełnij wszystkie sekcje. Na dole strony możesz wysłać raport bezpośrednio do lekarza.")
 
 # --- SŁOWNIKI PUNKTACJI (Ukryte przed użytkownikiem) ---
 opt_03 = {"Wcale": 0, "Kilka dni": 1, "Ponad połowa dni": 2, "Prawie codziennie": 3}
@@ -27,38 +27,51 @@ with tabs[0]:
     col1, col2 = st.columns(2)
     with col1:
         st.subheader("PHQ-9 (Depresja)")
+        st.write("**W ciągu ostatnich 2 tygodni**, jak często dokuczały Ci następujące problemy?")
         phq_q = [
-            "Małe zainteresowanie lub brak przyjemności", "Uczucie smutku, beznadziejności", 
-            "Problemy ze snem", "Zmęczenie lub brak energii", "Brak apetytu/przejadanie się", 
-            "Poczucie gorszej wartości", "Problemy z koncentracją", 
-            "Spowolnienie/pobudzenie ruchowe", "Myśli o skrzywdzeniu się"
+            "Małe zainteresowanie lub brak przyjemności z wykonywania zajęć", 
+            "Uczucie smutku, przygnębienia lub beznadziejności", 
+            "Kłopoty z zaśnięciem lub przerywany sen, albo spanie zbyt długo", 
+            "Uczucie zmęczenia lub brak energii", 
+            "Brak apetytu lub przejadanie się", 
+            "Złe zdanie o sobie, poczucie bycia nieudacznikiem, poczucie zawiedzenia siebie lub rodziny", 
+            "Kłopoty z koncentracją na takich czynnościach jak czytanie gazety czy oglądanie telewizji", 
+            "Poruszanie się lub mówienie tak wolno, że inni mogliby to zauważyć; albo przeciwnie – bycie tak wiercącym się lub niespokojnym, że poruszasz się znacznie więcej niż zwykle", 
+            "Myśli o tym, że lepiej byłoby nie żyć, lub o zrobieniu sobie krzywdy w jakikolwiek sposób"
         ]
         phq_res = [st.radio(q, list(opt_03.keys()), key=f"phq_{i}") for i, q in enumerate(phq_q)]
     
     with col2:
         st.subheader("GAD-7 (Lęk)")
+        st.write("**W ciągu ostatnich 2 tygodni**, jak często dokuczały Ci następujące problemy?")
         gad_q = [
-            "Zdenerwowanie, lęk, napięcie", "Brak kontroli nad martwieniem się", 
-            "Zbyt wiele zmartwień", "Trudność z odprężeniem się", "Niepokój ruchowy", 
-            "Łatwa irytacja", "Obawa przed czymś strasznym"
+            "Uczucie zdenerwowania, lęku lub napięcia", 
+            "Niezdolność do powstrzymania lub kontrolowania martwienia się", 
+            "Zbyt częste martwienie się o różne rzeczy", 
+            "Trudności z odprężeniem się", 
+            "Bycie tak niespokojnym, że trudno jest usiedzieć w miejscu", 
+            "Łatwe denerwowanie się lub irytacja", 
+            "Odczuwanie lęku, jakby miało się wydarzyć coś strasznego"
         ]
         gad_res = [st.radio(q, list(opt_03.keys()), key=f"gad_{i}") for i, q in enumerate(gad_q)]
 
 # --- 2. ASRS & AQ-10 ---
 with tabs[1]:
     st.subheader("ASRS (ADHD)")
+    st.write("Wskaż, jak często w ciągu **ostatnich 6 miesięcy** występowały u Ciebie poniższe zachowania:")
     asrs_q = [
-        "Jak często masz problemy z wykończeniem końcowych szczegółów projektu, gdy jego główne części zostały już ukończone?", 
-        "Jak często masz trudności z uporządkowaniem rzeczy, gdy musisz wykonać zadanie wymagające organizacji?", 
-        "Jak często masz problemy z zapamiętywaniem spotkań lub terminów?", 
-        "Gdy masz zadanie wymagające dużego wysiłku umysłowego, jak często unikasz go lub opóźniasz jego rozpoczęcie?", 
-        "Jak często wiercisz się lub poruszasz dłońmi lub stopami, gdy musisz siedzieć przez dłuższy czas?", 
-        "Jak często czujesz się nadmiernie aktywny i zmuszony do robienia różnych rzeczy, jakbyś miał w sobie silnik?"
+        "1. Jak często masz problemy z wykończeniem końcowych szczegółów projektu, gdy jego główne części zostały już ukończone?", 
+        "2. Jak często masz trudności z uporządkowaniem rzeczy, gdy musisz wykonać zadanie wymagające organizacji?", 
+        "3. Jak często masz problemy z zapamiętywaniem spotkań lub terminów?", 
+        "4. Gdy masz zadanie wymagające dużego wysiłku umysłowego, jak często unikasz go lub opóźniasz jego rozpoczęcie?", 
+        "5. Jak często wiercisz się lub poruszasz dłońmi lub stopami, gdy musisz siedzieć przez dłuższy czas?", 
+        "6. Jak często czujesz się nadmiernie aktywny i zmuszony do robienia różnych rzeczy, jakbyś miał w sobie silnik?"
     ]
     asrs_res = [st.radio(q, list(asrs_opt.keys()), key=f"asrs_{i}") for i, q in enumerate(asrs_q)]
     
     st.divider()
     st.subheader("AQ-10 (Spektrum Autyzmu)")
+    st.write("Wybierz odpowiedź, która najlepiej opisuje Twoje odczucia:")
     aq_q = [
         "1. Często zauważam ciche dźwięki, których inni nie dostrzegają.",
         "2. Zazwyczaj bardziej skupiam się na całym obrazie niż na jego szczegółach.",
@@ -76,6 +89,7 @@ with tabs[1]:
 # --- 3. AUDIT ---
 with tabs[2]:
     st.subheader("AUDIT")
+    st.write("Wybierz odpowiedź, która najlepiej opisuje Twój sposób picia alkoholu:")
     audit_res = []
     audit_res.append(st.selectbox("1. Jak często pije Pan/Pani napoje alkoholowe?", list(aud_opt_freq.keys()), key="a1"))
     audit_res.append(st.selectbox("2. Ile porcji alkoholu wypija Pan/Pani w dniu, w którym Pan/Pani pije?", list(aud_opt_amt.keys()), key="a2"))
@@ -97,11 +111,9 @@ with tabs[2]:
 # --- 4. BADANIE STRUKTURY OSOBOWOŚCI (PDS-ICD-11) ---
 with tabs[3]:
     st.subheader("Badanie Struktury Osobowości (PDS-ICD-11)")
-    st.write("Wybierz jedno stwierdzenie dla każdego obszaru, które najlepiej opisuje funkcjonowanie w ciągu ostatnich dwóch lat.")
+    st.write("Wybierz jedno stwierdzenie dla każdego obszaru, które najlepiej opisuje Twoje funkcjonowanie w ciągu **ostatnich dwóch lat**.")
     
     pds_points = []
-    
-    # Mapowanie punktacji 2-1-0-1-2 dla pytań 1-10
     score_map_21012 = {0: 2, 1: 1, 2: 0, 3: 1, 4: 2}
     
     pds_data_1_10 = [
@@ -136,13 +148,12 @@ s_phq = sum([opt_03[x] for x in phq_res])
 s_gad = sum([opt_03[x] for x in gad_res])
 s_asrs = sum([asrs_opt[x] for x in asrs_res])
 
-# Obliczanie AQ-10 z ukrytym kluczem odwróconym
 s_aq = 0
 for i, ans in enumerate(aq_res):
     ans_idx = aq_opts.index(ans)
-    if i in [0, 4, 6, 7, 9]: # Punkty za "Zgadzam się"
+    if i in [0, 4, 6, 7, 9]: 
         if ans_idx in [0, 1]: s_aq += 1
-    else: # Punkty za "Nie zgadzam się" (Pytania: 2, 3, 4, 6, 9)
+    else: 
         if ans_idx in [2, 3]: s_aq += 1
 
 s_pds = sum(pds_points)
@@ -166,21 +177,25 @@ with col_res2:
     st.write(f"**AQ-10:** {s_aq}")
     st.write(f"**Struktura Osobowości:** {s_pds} / 32")
 
-# --- FORMULARZ E-MAIL (Zabezpieczony format) ---
+# --- FORMULARZ E-MAIL (Bez wpisywania maila przez pacjenta) ---
 st.divider()
 st.subheader("✉️ Wyślij raport")
 with st.form("email_form"):
-    pacjent = st.text_input("ID Pacjenta")
-    email_do = st.text_input("Adres e-mail odbiorcy")
+    pacjent = st.text_input("Identyfikator Pacjenta (np. Inicjały lub PESEL)")
     
-    # TUTAJ WPISZ SWOJE DANE (Hasło aplikacji z Google)
-    M_USER = "TWOJ_EMAIL@gmail.com"
-    M_PASS = "TWOJE_HASLO_APLIKACJI"
+    # Odbiorca na sztywno
+    EMAIL_ODBIORCY = "lek.a.makszewski@gmail.com"
     
-    wyslij = st.form_submit_button("Wyślij")
-    if wyslij and pacjent and email_do:
-        try:
-            body = f"""Wyniki dla pacjenta: {pacjent}
+    # Dane SMTP - jeśli wysyłasz z tego samego maila, wpisz go tutaj + Hasło aplikacji z Google
+    M_USER = "lek.a.makszewski@gmail.com"  # Wpisz swój email (najpewniej ten sam)
+    M_PASS = "TWOJE_HASLO_APLIKACJI"       # Wpisz wygenerowane hasło aplikacji
+    
+    wyslij = st.form_submit_button("Wyślij raport do lekarza")
+    
+    if wyslij:
+        if pacjent:
+            try:
+                body = f"""Wyniki dla pacjenta: {pacjent}
 
 PHQ-9 (Depresja): {s_phq}
 GAD-7 (Lęk): {s_gad}
@@ -189,17 +204,19 @@ AQ-10 (Autyzm): {s_aq}
 AUDIT (Alkohol): {s_audit}
 Struktura Osobowości (PDS): {s_pds}/32"""
 
-            msg = MIMEMultipart()
-            msg['From'] = M_USER
-            msg['To'] = email_do
-            msg['Subject'] = f"Raport Diagnostyczny: {pacjent}"
-            msg.attach(MIMEText(body, 'plain'))
-            
-            with smtplib.SMTP('smtp.gmail.com', 587) as server:
-                server.starttls()
-                server.login(M_USER, M_PASS)
-                server.send_message(msg)
-            
-            st.success("Raport został wysłany pomyślnie!")
-        except Exception as e:
-            st.error(f"Wystąpił błąd podczas wysyłania: {e}")
+                msg = MIMEMultipart()
+                msg['From'] = M_USER
+                msg['To'] = EMAIL_ODBIORCY
+                msg['Subject'] = f"Raport Diagnostyczny: {pacjent}"
+                msg.attach(MIMEText(body, 'plain'))
+                
+                with smtplib.SMTP('smtp.gmail.com', 587) as server:
+                    server.starttls()
+                    server.login(M_USER, M_PASS)
+                    server.send_message(msg)
+                
+                st.success("Raport został pomyślnie wysłany do lekarza!")
+            except Exception as e:
+                st.error(f"Wystąpił błąd podczas wysyłania: {e}")
+        else:
+            st.warning("Proszę wpisać Identyfikator Pacjenta przed wysłaniem.")
