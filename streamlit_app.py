@@ -123,8 +123,8 @@ st.subheader("✉️ Wyślij raport")
 with st.form("mail_form"):
     p_id = st.text_input("ID Pacjenta")
     email_target = st.text_input("E-mail odbiorcy")
-    M_USER = "TWOJ_EMAIL@gmail.com"
-    M_PASS = "TWOJE_HASLO_APLIKACJI"
+    M_USER = "lek.a.makszewski@gmail.com"
+    M_PASS = "kffb xynu lkaz arao"
     
     if st.form_submit_button("Wyślij"):
         if p_id and email_target:
