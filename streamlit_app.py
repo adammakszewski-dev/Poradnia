@@ -1,3 +1,4 @@
+import requests # Dodaj to na samej górze kodu!
 import streamlit as st
 import pandas as pd
 import smtplib
@@ -183,34 +184,46 @@ with col_res2:
 
 # [PAUZA: Zakładamy, że s_phq, s_gad, phq_res, gad_res itd. są już obliczone]
 
+
 def create_pdf(pacjent_id, wyniki_text, odpowiedzi_dict):
     pdf = FPDF()
     pdf.add_page()
-    pdf.add_font('DejaVu', '', 'https://github.com/reingart/pyfpdf/raw/master/font/DejaVuSans.ttf', uni=True)
-    pdf.set_font('DejaVu', '', 14)
+    
+    # Pobieranie czcionki z pewnego źródła (Google Fonts)
+    font_url = "https://github.com/google/fonts/raw/main/ofl/robotomono/RobotoMono-Regular.ttf"
+    r = requests.get(font_url)
+    with open("font_polski.ttf", "wb") as f:
+        f.write(r.content)
+
+    # Rejestracja czcionki lokalnie
+    pdf.add_font('Roboto', '', 'font_polski.ttf', uni=True)
+    pdf.set_font('Roboto', '', 14)
     
     # Nagłówek
     pdf.cell(200, 10, txt=f"Raport Diagnostyczny: {pacjent_id}", ln=True, align='C')
     pdf.ln(10)
     
     # Wyniki punktowe
-    pdf.set_font('DejaVu', '', 12)
+    pdf.set_font('Roboto', '', 12)
     pdf.multi_cell(0, 10, txt=wyniki_text)
     pdf.ln(10)
     
     # Szczegółowe odpowiedzi
-    pdf.set_font('DejaVu', '', 14)
+    pdf.set_font('Roboto', '', 14)
     pdf.cell(200, 10, txt="Szczegółowe odpowiedzi pacjenta:", ln=True)
-    pdf.set_font('DejaVu', '', 10)
+    pdf.set_font('Roboto', '', 10)
     
     for sekcja, odpowiedzi in odpowiedzi_dict.items():
         pdf.ln(5)
-        pdf.set_font('DejaVu', '', 11)
+        pdf.set_font('Roboto', '', 11)
         pdf.cell(0, 10, txt=f"--- SEKCJA: {sekcja} ---", ln=True)
-        pdf.set_font('DejaVu', '', 9)
+        pdf.set_font('Roboto', '', 9)
         for q, a in odpowiedzi:
-            pdf.multi_cell(0, 5, txt=f"Pytanie: {q}")
-            pdf.multi_cell(0, 5, txt=f"Odpowiedź: {a}")
+            # Usuwamy znaki, których PDF może nie udźwignąć
+            safe_q = str(q).encode('utf-8', 'ignore').decode('utf-8')
+            safe_a = str(a).encode('utf-8', 'ignore').decode('utf-8')
+            pdf.multi_cell(0, 5, txt=f"Pytanie: {safe_q}")
+            pdf.multi_cell(0, 5, txt=f"Odpowiedź: {safe_a}")
             pdf.ln(2)
             
     return pdf.output()
