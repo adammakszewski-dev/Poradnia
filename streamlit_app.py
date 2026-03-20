@@ -13,7 +13,6 @@ st.info("Wypełnij wszystkie sekcje. Na dole strony możesz wysłać raport na e
 opt_03 = {"Wcale (0)": 0, "Kilka dni (1)": 1, "Ponad połowa dni (2)": 2, "Prawie codziennie (3)": 3}
 asrs_opt = {"Nigdy (0)": 0, "Rzadko (0)": 0, "Czasami (1)": 1, "Często (1)": 1, "Bardzo często (1)": 1}
 
-# AUDIT - Opcje tekstowe
 aud_opt_freq = {"Nigdy (0)": 0, "Raz w miesiącu lub rzadziej (1)": 1, "2-4 razy w miesiącu (2)": 2, "2-3 razy w tygodniu (3)": 3, "4 lub więcej razy w tygodniu (4)": 4}
 aud_opt_amt = {"1-2 (0)": 0, "3-4 (1)": 1, "5-6 (2)": 2, "7-9 (3)": 3, "10+ (4)": 4}
 aud_opt_9_10 = {"Nie (0)": 0, "Tak, ale nie w ostatnim roku (2)": 2, "Tak, w ostatnim roku (4)": 4}
@@ -36,29 +35,28 @@ with tabs[0]:
 with tabs[1]:
     st.subheader("ASRS (ADHD)")
     asrs_q = [
-        "1. Jak często masz problemy z wykończeniem końcowych szczegółów projektu, gdy jego główne części zostały już ukończone?",
-        "2. Jak często masz trudności z uporządkowaniem rzeczy, gdy musisz wykonać zadanie wymagające organizacji?",
-        "3. Jak często masz problemy z zapamiętywaniem spotkań lub terminów?",
-        "4. Gdy masz zadanie wymagające dużego wysiłku umysłowego, jak często unikasz go lub opóźniasz jego rozpoczęcie?",
-        "5. Jak często wiercisz się lub poruszasz dłońmi lub stopami, gdy musisz siedzieć przez dłuższy czas?",
-        "6. Jak często czujesz się nadmiernie aktywny i zmuszony do robienia różnych rzeczy, jakbyś miał w sobie silnik?"
+        "1. Problemy z wykończeniem szczegółów projektu?",
+        "2. Trudności z uporządkowaniem rzeczy/organizacją?",
+        "3. Problemy z zapamiętywaniem spotkań/terminów?",
+        "4. Unikanie zadań wymagających dużego wysiłku umysłowego?",
+        "5. Wiercenie się/poruszanie rękami lub stopami?",
+        "6. Uczucie nadmiernej aktywności, 'pędzenia jak z silnikiem'?"
     ]
     asrs_res = [st.radio(q, list(asrs_opt.keys()), key=f"asrs_{i}") for i, q in enumerate(asrs_q)]
     
     st.divider()
-    
     st.subheader("AQ-10 (Spektrum Autyzmu)")
     st.write("Zaznacz, jeśli poniższe stwierdzenie Cię dotyczy:")
     aq_q = [
         "1. Często zauważam ciche dźwięki, których inni nie dostrzegają.",
-        "2. Zazwyczaj bardziej skupiam się na całym obrazie niż na jego szczegółach. (Zaznacz, jeśli NIE)",
+        "2. Zazwyczaj bardziej skupiam się na całym obrazie niż na szczegółach. (Zaznacz, jeśli NIE)",
         "3. Łatwo mi przychodzi robienie kilku rzeczy naraz. (Zaznacz, jeśli NIE)",
-        "4. Jeśli następuje przerwa w moich planach, bardzo szybko potrafię do nich wrócić. (Zaznacz, jeśli NIE)",
-        "5. Trudno mi 'czytać między wierszami', gdy z kimś rozmawiam.",
-        "6. Wiem, jak stwierdzić, czy ktoś, kto mnie słucha, nudzi się. (Zaznacz, jeśli NIE)",
-        "7. Kiedy czytam opowiadanie, trudno mi wyobrazić sobie, co czują bohaterowie.",
-        "8. Lubię zbierać informacje o kategoriach rzeczy (np. typy samochodów, ptaków, pociągów).",
-        "9. Łatwo mi przychodzi odgadnięcie, co ktoś myśli lub czuje, patrząc na jego twarz. (Zaznacz, jeśli NIE)",
+        "4. Po przerwie szybko potrafię wrócić do planów. (Zaznacz, jeśli NIE)",
+        "5. Trudno mi 'czytać między wierszami' w rozmowie.",
+        "6. Wiem, jak stwierdzić, czy słuchacz się nudzi. (Zaznacz, jeśli NIE)",
+        "7. Trudno mi wyobrazić sobie, co czują bohaterowie książek.",
+        "8. Lubię zbierać informacje o kategoriach rzeczy (np. typy aut).",
+        "9. Łatwo odgaduję myśli/uczucia z twarzy innych. (Zaznacz, jeśli NIE)",
         "10. Trudno mi zrozumieć intencje innych ludzi."
     ]
     aq_res = [st.checkbox(q, key=f"aq_{i}") for i, q in enumerate(aq_q)]
@@ -68,65 +66,57 @@ with tabs[2]:
     st.subheader("AUDIT (Alkohol)")
     audit_res = []
     audit_res.append(st.selectbox("1. Jak często pije Pan/Pani alkohol?", list(aud_opt_freq.keys()), key="a1"))
-    audit_res.append(st.selectbox("2. Ile porcji wypija Pan/Pani w typowym dniu picia?", list(aud_opt_amt.keys()), key="a2"))
-    audit_res.append(st.selectbox("3. Jak często wypija Pan/Pani 6 lub więcej porcji naraz?", list(aud_opt_freq.keys()), key="a3"))
-    aud_qs = ["4. Niezdolność do przerwania picia?", "5. Zaniedbanie obowiązków?", "6. Picie poranne?", "7. Wyrzuty sumienia?", "8. Luki w pamięci?"]
+    audit_res.append(st.selectbox("2. Ile porcji w typowym dniu picia?", list(aud_opt_amt.keys()), key="a2"))
+    audit_res.append(st.selectbox("3. Jak często 6 lub więcej porcji naraz?", list(aud_opt_freq.keys()), key="a3"))
+    aud_qs = ["4. Brak kontroli nad przerwaniem picia?", "5. Zaniedbanie obowiązków?", "6. Picie rano?", "7. Wyrzuty sumienia?", "8. Luki w pamięci?"]
     for i, q in enumerate(aud_qs):
         audit_res.append(st.selectbox(q, list(aud_opt_freq.keys()), key=f"a{i+4}"))
-    audit_res.append(st.selectbox("9. Uraz fizyczny spowodowany piciem?", list(aud_opt_9_10.keys()), key="a9"))
-    audit_res.append(st.selectbox("10. Sugestie innych o ograniczeniu?", list(aud_opt_9_10.keys()), key="a10"))
+    audit_res.append(st.selectbox("9. Uraz fizyczny przez picie?", list(aud_opt_9_10.keys()), key="a9"))
+    audit_res.append(st.selectbox("10. Sugestie o ograniczeniu?", list(aud_opt_9_10.keys()), key="a10"))
 
 # --- 4. PDS-ICD-11 ---
 with tabs[3]:
-    st.subheader("PDS-ICD-11 (Zaburzenia Osobowości)")
-    st.write("Wybierz jedno stwierdzenie, które najlepiej opisuje daną osobę w ciągu ostatnich dwóch lat.")
+    st.subheader("PDS-ICD-11 (Osobowość)")
+    st.write("Wybierz jedno stwierdzenie dla każdego obszaru (ostatnie 2 lata):")
     
-    pds_total = 0
+    pds_points = []
+    score_map_21012 = {0: 2, 1: 1, 2: 0, 3: 1, 4: 2}
 
-    # PYTANIA 1-10 (Punktacja 2-1-0-1-2)
-    pds_1_10_data = [
-        ("1. Tożsamość", [
-            "Często brak poczucia Ja lub tożsamości, słabe granice (2 pkt)",
-            "Czasami dezorientacja co do tożsamości, naśladowanie innych (1 pkt)",
-            "Stabilne poczucie Ja / tożsamości (0 pkt)",
-            "Tożsamość zbyt sztywna/stała (np. tylko rola zawodowa) (1 pkt)",
-            "Tożsamość skrajnie sztywna i niezmienna za wszelką cenę (2 pkt)"
-        ]),
-        ("2. Poczucie własnej wartości", [
-            "Poczucie bezwartościowości przez większość czasu (2 pkt)",
-            "Częste niskie poczucie własnej wartości, wpływ na relacje (1 pkt)",
-            "Brak trudności z poczuciem własnej wartości (0 pkt)",
-            "Częste poczucie bycia lepszym od innych (1 pkt)",
-            "Stałe poczucie wyższości nad innymi (2 pkt)"
-        ]),
-        # ... (powtórz ten schemat dla pytań 3-10 zgodnie z moim poprzednim kodem) ...
+    pds_data_1_10 = [
+        ("1. Tożsamość", ["Często brak poczucia Ja / słabe granice", "Czasami dezorientacja / naśladowanie innych", "Stabilne poczucie Ja / tożsamości", "Tożsamość zbyt sztywna (tylko jedna rola)", "Tożsamość skrajnie niezmienna i ograniczona"]),
+        ("2. Poczucie własnej wartości", ["Poczucie bezwartościowości przez większość czasu", "Częste niskie poczucie wartości", "Brak trudności z poczuciem wartości", "Częste poczucie bycia lepszym od innych", "Stałe poczucie wyższości"]),
+        ("3. Postrzeganie siebie", ["Brak jakichkolwiek mocnych stron", "Niewiele mocnych stron", "Dobre poczucie stron mocnych i słabych", "Niewiele ograniczeń/słabości", "Brak jakichkolwiek słabości/ograniczeń"]),
+        ("4. Cele", ["Rzadko zdolny do realistycznych celów", "Czasem trudno stawiać/realizować cele", "Brak problemów z celami", "Nadmierne nastawienie na cel / brak korekty", "Skrajnie uparty w dążeniu do celu"]),
+        ("5. Relacje (Zainteresowanie)", ["Silne unikanie ludzi / izolacja", "Czasem unika ludzi (dyskomfort)", "Równowaga bycia z innymi i samemu", "Cierpi / czuje lęk, gdy jest sam", "Rozpacz/przerażenie przy braku innych"]),
+        ("6. Przyjmowanie perspektywy", ["Nigdy nie rozumie myśli/uczuć innych", "Często nie bierze pod uwagę innych", "Łatwo rozumie innych", "Zbyt intensywnie analizuje innych", "Skrajna, bolesna analiza myśli innych"]),
+        ("7. Wzajemność", ["Zawsze samolubny / manipulacyjny", "Czasem zbyt samolubny / dominujący", "Relacje oparte na wzajemności", "Nie umie dbać o własne potrzeby", "Skrajna uległość / bycie ofiarą"]),
+        ("8. Konflikty", ["Szuka kłótni / brak trwałych relacji", "Częste konflikty", "Zdolny do współpracy w sporze", "Unika sporów kosztem swoich potrzeb", "Unika sporów za wszelką cenę"]),
+        ("9. Emocje", ["Częsta brak regulacji / wybuchy", "Czasem trudności z regulacją", "Odpowiednia regulacja i ekspresja", "Tłumienie emocji (aleksytymia)", "Prawie całkowite odcięcie od emocji"]),
+        ("10. Zachowanie", ["Skrajna impulsywność / kłopoty", "Czasem działa pod wpływem impulsu", "Spontaniczny, ale pod kontrolą", "Nadmierna kontrola (brak radości)", "Skrajne zahamowanie / brak życia"])
     ]
 
-    # Mapowanie punktacji dla pytań 1-10
-    score_map_bipolar = {0: 2, 1: 1, 2: 0, 3: 1, 4: 2}
+    for i, (title, opts) in enumerate(pds_data_1_10):
+        choice = st.radio(title, opts, key=f"pds_q_{i}")
+        pds_points.append(score_map_21012[opts.index(choice)])
 
-    # Przykład pętli dla 1-10
-    for i, (title, opts) in enumerate(pds_1_10_data):
-        choice = st.radio(title, opts, key=f"pds_new_{i}")
-        pds_total += score_map_bipolar[opts.index(choice)]
-
-    # PYTANIA 11-14 (Punktacja 0-1-2-3)
-    pds_11_14_data = [
-        ("11. Rzeczywistość pod wpływem stresu", ["Zazwyczaj trafna (0 pkt)", "Nieco zniekształcona (1 pkt)", "Znacznie zniekształcona (2 pkt)", "Częsta utrata kontaktu (3 pkt)"]),
-        ("12. Krzywdzenie siebie", ["Nigdy (0 pkt)", "Rzadko (1 pkt)", "Czasami (2 pkt)", "Często (3 pkt)"]),
-        ("13. Krzywdzenie innych", ["Nigdy (0 pkt)", "Rzadko (1 pkt)", "Czasami (2 pkt)", "Często (3 pkt)"]),
-        ("14. Ogólne upośledzenie", ["Brak/małe (0 pkt)", "Łagodne (1 pkt)", "Umiarkowane (2 pkt)", "Ciężkie (3 pkt)"])
+    st.markdown("**Dodatkowe wskaźniki (0-3 pkt):**")
+    pds_data_11_14 = [
+        ("11. Rzeczywistość w stresie", ["Trafna", "Nieco zniekształcona", "Znacznie zniekształcona", "Utrata kontaktu / halucynacje"]),
+        ("12. Krzywdzenie siebie", ["Nigdy", "Rzadko", "Czasami", "Często"]),
+        ("13. Krzywdzenie innych", ["Nigdy", "Rzadko", "Czasami", "Często"]),
+        ("14. Upośledzenie życia", ["Brak", "Łagodne", "Umiarkowane", "Ciężkie"])
     ]
 
-    for i, (title, opts) in enumerate(pds_11_14_data):
-        choice = st.radio(title, opts, key=f"pds_v1114_{i}")
-        pds_total += opts.index(choice)
+    for i, (title, opts) in enumerate(pds_data_11_14):
+        choice = st.radio(title, opts, key=f"pds_v_{i}")
+        pds_points.append(opts.index(choice))
+
 # --- OBLICZENIA ---
 s_phq = sum([opt_03[x] for x in phq_res])
 s_gad = sum([opt_03[x] for x in gad_res])
 s_asrs = sum([asrs_opt[x] for x in asrs_res])
 s_aq = sum(aq_res)
-s_pds = sum(pds_scores)
+s_pds = sum(pds_points)
 
 s_audit = 0
 for i, ans in enumerate(audit_res):
@@ -136,43 +126,29 @@ for i, ans in enumerate(audit_res):
 
 # --- RAPORT ---
 st.divider()
-st.header("📊 Wyniki")
-c1, c2 = st.columns(2)
-with c1:
+st.header("📊 Wyniki końcowe")
+col_a, col_b = st.columns(2)
+with col_a:
     st.write(f"**PHQ-9 (Depresja):** {s_phq}")
     st.write(f"**GAD-7 (Lęk):** {s_gad}")
     st.write(f"**ASRS (ADHD):** {s_asrs}")
-with c2:
+with col_b:
     st.write(f"**AUDIT (Alkohol):** {s_audit}")
     st.write(f"**AQ-10 (Autyzm):** {s_aq}")
     st.write(f"**PDS-ICD-11 (Osobowość):** {s_pds} / 32")
 
 # --- WYSYŁKA ---
 st.divider()
-st.subheader("✉️ Wyślij raport na e-mail")
-with st.form("final_mail"):
-    p_id = st.text_input("ID Pacjenta")
-    dest_mail = st.text_input("E-mail lekarza")
+st.subheader("✉️ Wyślij raport")
+with st.form("mail_form"):
+    p_id = st.text_input("Identyfikator Pacjenta")
+    email_target = st.text_input("E-mail odbiorcy")
     
-    # Dane SMTP - WPISZ SWOJE
     M_USER = "TWOJ_EMAIL@gmail.com"
     M_PASS = "TWOJE_HASLO_APLIKACJI"
     
     if st.form_submit_button("Wyślij"):
-        if p_id and dest_mail:
+        if p_id and email_target:
             try:
-                body = f"Wyniki pacjenta {p_id}:\n\nPHQ-9: {s_phq}\nGAD-7: {s_gad}\nASRS: {s_asrs}\nAUDIT: {s_audit}\nAQ-10: {s_aq}\nPDS-ICD-11: {s_pds}/32"
-                msg = MIMEMultipart()
-                msg['From'] = M_USER
-                msg['To'] = dest_mail
-                msg['Subject'] = f"Raport Diagnostyczny: {p_id}"
-                msg.attach(MIMEText(body, 'plain'))
-                with smtplib.SMTP('smtp.gmail.com', 587) as server:
-                    server.starttls()
-                    server.login(M_USER, M_PASS)
-                    server.send_message(msg)
-                st.success("Wysłano pomyślnie!")
-            except Exception as e:
-                st.error(f"Błąd wysyłki: {e}")
-        else:
-            st.warning("Uzupełnij pola ID i E-mail.")
+                content = f"Wyniki: {p_id}\n\nPHQ-9: {s_phq}\nGAD-7:
+            
