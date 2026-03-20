@@ -3,6 +3,10 @@ import pandas as pd
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from email.mime.base import MIMEBase
+from email import encoders
+from fpdf import FPDF
+import io
 
 st.set_page_config(page_title="Poradnia - Diagnostyka", layout="wide")
 
@@ -177,46 +181,100 @@ with col_res2:
     st.write(f"**AQ-10:** {s_aq}")
     st.write(f"**Struktura Osobowości:** {s_pds} / 32")
 
-# --- FORMULARZ E-MAIL (Bez wpisywania maila przez pacjenta) ---
+# [PAUZA: Zakładamy, że s_phq, s_gad, phq_res, gad_res itd. są już obliczone]
+
+def create_pdf(pacjent_id, wyniki_text, odpowiedzi_dict):
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.add_font('DejaVu', '', 'https://github.com/reingart/pyfpdf/raw/master/font/DejaVuSans.ttf', uni=True)
+    pdf.set_font('DejaVu', '', 14)
+    
+    # Nagłówek
+    pdf.cell(200, 10, txt=f"Raport Diagnostyczny: {pacjent_id}", ln=True, align='C')
+    pdf.ln(10)
+    
+    # Wyniki punktowe
+    pdf.set_font('DejaVu', '', 12)
+    pdf.multi_cell(0, 10, txt=wyniki_text)
+    pdf.ln(10)
+    
+    # Szczegółowe odpowiedzi
+    pdf.set_font('DejaVu', '', 14)
+    pdf.cell(200, 10, txt="Szczegółowe odpowiedzi pacjenta:", ln=True)
+    pdf.set_font('DejaVu', '', 10)
+    
+    for sekcja, odpowiedzi in odpowiedzi_dict.items():
+        pdf.ln(5)
+        pdf.set_font('DejaVu', '', 11)
+        pdf.cell(0, 10, txt=f"--- SEKCJA: {sekcja} ---", ln=True)
+        pdf.set_font('DejaVu', '', 9)
+        for q, a in odpowiedzi:
+            pdf.multi_cell(0, 5, txt=f"Pytanie: {q}")
+            pdf.multi_cell(0, 5, txt=f"Odpowiedź: {a}")
+            pdf.ln(2)
+            
+    return pdf.output()
+
+# --- FORMULARZ E-MAIL Z PDF ---
 st.divider()
-st.subheader("✉️ Wyślij raport")
+st.subheader("✉️ Wyślij raport z załącznikiem PDF")
+
 with st.form("email_form"):
     pacjent = st.text_input("Identyfikator Pacjenta (np. Inicjały lub PESEL)")
-    
-    # Odbiorca na sztywno
     EMAIL_ODBIORCY = "lek.a.makszewski@gmail.com"
+    M_USER = "lek.a.makszewski@gmail.com" 
+    M_PASS = "resj shmx amun dmzk" # <--- WPISZ SWOJE HASLO TUTAJ
     
-    # Dane SMTP - jeśli wysyłasz z tego samego maila, wpisz go tutaj + Hasło aplikacji z Google
-    M_USER = "lek.a.makszewski@gmail.com"  # Wpisz swój email (najpewniej ten sam)
-    M_PASS = "TWOJE_HASLO_APLIKACJI"       # Wpisz wygenerowane hasło aplikacji
-    
-    wyslij = st.form_submit_button("Wyślij raport do lekarza")
+    wyslij = st.form_submit_button("Wyślij pełny raport PDF do lekarza")
     
     if wyslij:
         if pacjent:
             try:
-                body = f"""Wyniki dla pacjenta: {pacjent}
+                # Przygotowanie tekstu wyników
+                wyniki_raw = f"""PHQ-9: {s_phq}
+GAD-7: {s_gad}
+ASRS: {s_asrs}
+AQ-10: {s_aq}
+AUDIT: {s_audit}
+PDS-ICD-11: {s_pds}/32"""
 
-PHQ-9 (Depresja): {s_phq}
-GAD-7 (Lęk): {s_gad}
-ASRS (ADHD): {s_asrs}
-AQ-10 (Autyzm): {s_aq}
-AUDIT (Alkohol): {s_audit}
-Struktura Osobowości (PDS): {s_pds}/32"""
+                # Przygotowanie słownika wszystkich odpowiedzi do PDF
+                wszystkie_odp = {
+                    "PHQ-9": list(zip(phq_q, phq_res)),
+                    "GAD-7": list(zip(gad_q, gad_res)),
+                    "ASRS": list(zip(asrs_q, asrs_res)),
+                    "AQ-10": list(zip(aq_q, aq_res)),
+                    "AUDIT": [("Pytania 1-10", str(audit_res))],
+                    "PDS-ICD-11": [("Struktura Osobowości", "Szczegóły w wynikach punktowych")]
+                }
 
+                # Generowanie PDF w pamięci
+                pdf_content = create_pdf(pacjent, wyniki_raw, wszystkie_odp)
+                
+                # Tworzenie maila
                 msg = MIMEMultipart()
                 msg['From'] = M_USER
                 msg['To'] = EMAIL_ODBIORCY
-                msg['Subject'] = f"Raport Diagnostyczny: {pacjent}"
-                msg.attach(MIMEText(body, 'plain'))
+                msg['Subject'] = f"Pełny Raport PDF: {pacjent}"
                 
+                # Treść maila
+                msg.attach(MIMEText(f"W załączeniu przesyłam pełny raport oraz wypełnioną ankietę dla pacjenta: {pacjent}\n\nPodsumowanie:\n{wyniki_raw}", 'plain'))
+                
+                # Załącznik PDF
+                part = MIMEBase('application', 'octet-stream')
+                part.set_payload(pdf_content)
+                encoders.encode_base64(part)
+                part.add_header('Content-Disposition', f"attachment; filename=Raport_{pacjent}.pdf")
+                msg.attach(part)
+                
+                # Wysyłka
                 with smtplib.SMTP('smtp.gmail.com', 587) as server:
                     server.starttls()
                     server.login(M_USER, M_PASS)
                     server.send_message(msg)
                 
-                st.success("Raport został pomyślnie wysłany do lekarza!")
+                st.success("Raport PDF został pomyślnie wysłany!")
             except Exception as e:
-                st.error(f"Wystąpił błąd podczas wysyłania: {e}")
+                st.error(f"Błąd: {e}")
         else:
-            st.warning("Proszę wpisać Identyfikator Pacjenta przed wysłaniem.")
+            st.warning("Podaj ID pacjenta.")
