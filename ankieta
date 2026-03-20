@@ -1,0 +1,165 @@
+import streamlit as st
+import pandas as pd
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+
+st.set_page_config(page_title="Kwestionariusz Diagnostyczny", layout="wide")
+
+st.title("🩺 Arkusz Badań Psychiatrycznych")
+st.info("Narzędzie przesiewowe. Zaznacz odpowiedzi, a na końcu wygeneruj raport lub wyślij go na e-mail.")
+
+# --- SŁOWNIKI PUNKTACJI ---
+opt_03 = {"Wcale (0)": 0, "Kilka dni (1)": 1, "Ponad połowa dni (2)": 2, "Prawie codziennie (3)": 3}
+asrs_opt = {"Nigdy (0)": 0, "Rzadko (0)": 0, "Czasami (1)": 1, "Często (1)": 1, "Bardzo często (1)": 1}
+itq_opt = {"Wcale (0)": 0, "Trochę (1)": 1, "Średnio (2)": 2, "Bardzo (3)": 3, "Ekstremalnie (4)": 4}
+
+# Opcje dla AUDIT (poprawione na tekstowe)
+aud_opt_freq = {"Nigdy (0)": 0, "1-X w miesiącu (1)": 1, "2-4 w miesiącu (2)": 2, "2-3 w tygodniu (3)": 3, "4+ w tygodniu (4)": 4}
+aud_opt_amt = {"1-2 (0)": 0, "3-4 (1)": 1, "5-6 (2)": 2, "7-9 (3)": 3, "10+ (4)": 4}
+aud_opt_9_10 = {"Nie (0)": 0, "Tak, ale nie w tym roku (2)": 2, "Tak, w tym roku (4)": 4}
+
+tabs = st.tabs(["Nastrój (PHQ/GAD)", "Neuroatypowość", "Alkohol (AUDIT)", "Trauma (ITQ / ICD-11)"])
+
+# --- 1. PHQ & GAD ---
+with tabs[0]:
+    col1, col2 = st.columns(2)
+    with col1:
+        st.subheader("PHQ-9 (Depresja)")
+        phq_q = [
+            "Małe zainteresowanie lub brak przyjemności", "Uczucie smutku, beznadziejności", 
+            "Problemy ze snem", "Zmęczenie lub brak energii", "Brak apetytu/przejadanie się", 
+            "Poczucie gorszej wartości", "Problemy z koncentracją", 
+            "Spowolnienie/pobudzenie ruchowe", "Myśli o skrzywdzeniu się"
+        ]
+        phq_res = [st.radio(q, list(opt_03.keys()), key=f"phq_{i}") for i, q in enumerate(phq_q)]
+    
+    with col2:
+        st.subheader("GAD-7 (Lęk)")
+        gad_q = [
+            "Zdenerwowanie, lęk, napięcie", "Brak kontroli nad martwieniem się", 
+            "Zbyt wiele zmartwień", "Trudność z odprężeniem się", "Niepokój ruchowy", 
+            "Łatwa irytacja", "Obawa przed czymś strasznym"
+        ]
+        gad_res = [st.radio(q, list(opt_03.keys()), key=f"gad_{i}") for i, q in enumerate(gad_q)]
+
+# --- 2. ASRS & AQ ---
+with tabs[1]:
+    st.subheader("ASRS (ADHD)")
+    asrs_q = ["Problemy z dokończeniem detali", "Trudność z organizacją", "Zapominanie o spotkaniach", "Unikanie wysiłku umysłowego", "Wiercenie się", "Poczucie nadmiernego napędu"]
+    asrs_res = [st.radio(q, list(asrs_opt.keys()), key=f"asrs_{i}") for i, q in enumerate(asrs_q)]
+    
+    st.divider()
+    st.subheader("AQ-10 (Autyzm)")
+    aq_q = ["Często zauważam ciche dźwięki", "Skupiam się na szczegółach (tracąc ogół)", "Trudno mi czytać intencje innych", "Fascynują mnie liczby/daty", "Trudność ze small-talkiem"]
+    aq_res = [st.checkbox(q, key=f"aq_{i}") for i, q in enumerate(aq_q)]
+
+# --- 3. AUDIT ---
+with tabs[2]:
+    st.subheader("AUDIT")
+    audit_res = []
+    audit_res.append(st.selectbox("1. Częstotliwość picia", list(aud_opt_freq.keys()), key="a1"))
+    audit_res.append(st.selectbox("2. Ilość porcji", list(aud_opt_amt.keys()), key="a2"))
+    audit_res.append(st.selectbox("3. Pijesz 6+ naraz?", list(aud_opt_freq.keys()), key="a3"))
+    for i in range(4, 9):
+        audit_res.append(st.selectbox(f"{i}. Problem z kontrolą/zaniedbania/luki/urazy?", list(aud_opt_freq.keys()), key=f"a{i}"))
+    audit_res.append(st.selectbox("9. Urazy fizyczne po piciu?", list(aud_opt_9_10.keys()), key="a9"))
+    audit_res.append(st.selectbox("10. Sugestie innych o ograniczeniu?", list(aud_opt_9_10.keys()), key="a10"))
+
+# --- 4. ITQ (PEŁNE 18 PYTAŃ) ---
+with tabs[3]:
+    st.subheader("ITQ (International Trauma Questionnaire) wg ICD-11")
+    st.write("Odpowiedz w odniesieniu do najbardziej niepokojącego wydarzenia z przeszłości (ostatni miesiąc).")
+    
+    st.markdown("**Objawy PTSD:**")
+    itq_ptsd_q = [
+        "1. Uciążliwe sny dotyczące wydarzenia?",
+        "2. Ponowne przeżywanie wydarzenia w teraźniejszości (flashbacki)?",
+        "3. Wewnętrzne unikanie myśli i wspomnień o wydarzeniu?",
+        "4. Zewnętrzne unikanie ludzi, miejsc, rozmów o wydarzeniu?",
+        "5. Bycie 'na straży', nadmierna czujność?",
+        "6. Łatwe wzdryganie się, bycie skokowym?"
+    ]
+    itq_ptsd_res = [st.radio(q, list(itq_opt.keys()), key=f"itq_p_{i}") for i, q in enumerate(itq_ptsd_q)]
+
+    st.markdown("**Wpływ PTSD na funkcjonowanie:**")
+    itq_ptsd_func = [st.radio(q, list(itq_opt.keys()), key=f"itq_pf_{i}") for i, q in ["7. Wpływ na relacje?", "8. Wpływ na pracę/szkołę?", "9. Wpływ na inne ważne sfery życia?"]]
+
+    st.markdown("**Objawy Złożonego PTSD (DSO):**")
+    itq_dso_q = [
+        "10. Długi czas na uspokojenie się po silnych emocjach?",
+        "11. Poczucie bycia 'znieczulonym' emocjonalnie?",
+        "12. Poczucie bycia porażką?",
+        "13. Poczucie bycia bezwartościowym?",
+        "14. Poczucie odłączenia, odcięcia od innych?",
+        "15. Trudności w utrzymaniu bliskich relacji?"
+    ]
+    itq_dso_res = [st.radio(q, list(itq_opt.keys()), key=f"itq_d_{i}") for i, q in enumerate(itq_dso_q)]
+
+    st.markdown("**Wpływ DSO na funkcjonowanie:**")
+    itq_dso_func = [st.radio(q, list(itq_opt.keys()), key=f"itq_df_{i}") for i, q in ["16. Wpływ na relacje?", "17. Wpływ na pracę/szkołę?", "18. Wpływ na inne ważne sfery życia?"]]
+
+# --- ZLICZANIE ---
+s_phq = sum([opt_03[x] for x in phq_res])
+s_gad = sum([opt_03[x] for x in gad_res])
+s_asrs = sum([asrs_opt[x] for x in asrs_res])
+s_aq = sum(aq_res)
+s_itq_ptsd = sum([itq_opt[x] for x in itq_ptsd_res])
+s_itq_dso = sum([itq_opt[x] for x in itq_dso_res])
+
+s_audit = 0
+for i, ans in enumerate(audit_res):
+    if i < 3 or (i >= 3 and i < 8): s_audit += aud_opt_freq.get(ans, aud_opt_amt.get(ans, 0))
+    else: s_audit += aud_opt_9_10.get(ans, 0)
+
+# --- RAPORT ---
+st.divider()
+st.header("📊 Wyniki")
+st.write(f"**PHQ-9:** {s_phq} | **GAD-7:** {s_gad} | **ASRS:** {s_asrs} | **AUDIT:** {s_audit} | **AQ-10:** {s_aq}")
+st.write(f"**ITQ - PTSD:** {s_itq_ptsd} | **ITQ - DSO:** {s_itq_dso}")
+
+# --- WYSYŁKA E-MAIL ---
+st.divider()
+st.subheader("✉️ Wyślij wyniki na swój e-mail")
+with st.form("email_form"):
+    pacjent_id = st.text_input("Identyfikator pacjenta (np. inicjały)")
+    odbiorca_email = st.text_input("Twój adres e-mail (na który ma trafić raport)")
+    
+    # Dane SMTP (Do działania na serwerze musisz wpisać swoje dane z Gmaila)
+    nadawca_email = "TWOJ_EMAIL@gmail.com" 
+    nadawca_haslo = "TWOJE_HASLO_APLIKACJI"
+    
+    submitted = st.form_submit_button("Wyślij raport")
+    
+    if submitted and pacjent_id and odbiorca_email:
+        try:
+            raport_tresc = f"""
+            Raport z ankiety przesiewowej:
+            Pacjent: {pacjent_id}
+            
+            WYNIKI PUNKTOWE:
+            PHQ-9 (Depresja): {s_phq}
+            GAD-7 (Lęk): {s_gad}
+            ASRS (ADHD): {s_asrs}
+            AUDIT (Alkohol): {s_audit}
+            AQ-10 (Autyzm): {s_aq}
+            ITQ - Objawy PTSD: {s_itq_ptsd}
+            ITQ - Objawy DSO: {s_itq_dso}
+            """
+            
+            msg = MIMEMultipart()
+            msg['From'] = nadawca_email
+            msg['To'] = odbiorca_email
+            msg['Subject'] = f"Wyniki ankiety - {pacjent_id}"
+            msg.attach(MIMEText(raport_tresc, 'plain'))
+            
+            # Połączenie z serwerem Gmail
+            server = smtplib.SMTP('smtp.gmail.com', 587)
+            server.starttls()
+            server.login(nadawca_email, nadawca_haslo)
+            server.send_message(msg)
+            server.quit()
+            
+            st.success("Raport został pomyślnie wysłany!")
+        except Exception as e:
+            st.error(f"Błąd wysyłania maila. Upewnij się, że wpisałeś poprawne hasło aplikacji w kodzie. Szczegóły: {e}")
